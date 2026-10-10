@@ -43,7 +43,12 @@ h1 {
 
 .buttons {
   display: flex;
+  align-items: center;
   gap: 6px;
+}
+
+button.sound {
+  padding: 6px 8px;
 }
 
 button {

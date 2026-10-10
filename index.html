@@ -15,6 +15,7 @@
     <h1 id="title">Уровень 1</h1>
     <span id="stars">★ 0</span>
     <span class="buttons">
+      <button class="sound" type="button" aria-label="Звук">🔊</button>
       <button id="restart" type="button">Заново</button>
       <button id="home" type="button">Домой</button>
     </span>
@@ -35,7 +36,10 @@
   <div id="house">
     <header>
       <h1 id="room-name">Чердак</h1>
-      <span id="house-stars" class="star-count">★ 0</span>
+      <span class="buttons">
+        <span id="house-stars" class="star-count">★ 0</span>
+        <button class="sound" type="button" aria-label="Звук">🔊</button>
+      </span>
     </header>
     <div id="cozy"><div id="cozy-fill"></div><span id="cozy-text">Уют 0%</span></div>
     <!-- Комната на заглушках: каждая задача включает класс done-<id> -->

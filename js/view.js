@@ -48,6 +48,7 @@ class BoardScene extends Phaser.Scene {
     this.press = null;
     this.onSwap = () => {};
     this.onTap = () => {};
+    this.onBonus = () => {};
   }
 
   preload() {
@@ -216,6 +217,7 @@ class BoardScene extends Phaser.Scene {
 
   // Вспышка бонуса: скалка — луч по ряду/столбцу, варенье — кольцо, самовар — вспышка поля.
   bonusEffect(kind, x, y) {
+    this.onBonus(kind);
     const fade = (obj, extra = {}) => this.tweens.add({ targets: obj, alpha: 0, duration: 380, ease: 'Quad.easeOut', ...extra, onComplete: () => obj.destroy() });
     if (kind === 'h' || kind === 'v') {
       const beam = kind === 'h'

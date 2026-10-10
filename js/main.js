@@ -4,6 +4,7 @@ import { levelConfig } from './levels.js';
 import { ROOM, TASKS, sanitizeProgress, availableTasks, doTask, roomPercent } from './house.js';
 import { createSaver, loadSave } from './save.js';
 import { checkForUpdate } from './update.js';
+import * as sound from './sound.js';
 
 const $ = (id) => document.getElementById(id);
 let view; // сцена Phaser с полем
@@ -124,6 +125,7 @@ function renderHouse(note = '') {
       if (!next) { renderHouse(`Нужно ★ ${t.cost} — пройди уровень, чтобы заработать звёзды`); return; }
       progress = next;
       saver.save(progress);
+      sound.sfx.task();
       renderHouse(progress.done.length === TASKS.length ? 'Чердак восстановлен! Скоро откроется кухня.' : 'Готово!');
     };
     li.append(t.name, btn);
@@ -148,6 +150,7 @@ function showHouse() {
 }
 
 function play() {
+  sound.sfx.tap();
   $('house').hidden = true;
   startLevel();
 }
@@ -159,17 +162,20 @@ async function swap(a, b) {
   busy = true;
   const res = trySwap(board, a, b);
   if (!res) {
+    sound.sfx.bad();
     await view.bounce(board.cells, a, b); // нет совпадения — фишки съезжаются и возвращаются
     busy = false;
     return;
   }
   moves--;
+  sound.sfx.swap();
   renderHud();
   let chain = 0;
   for (const st of res.steps) {
     const anim = view.render(st.cells, st.kind);
     if (st.got) {
       view.combo(++chain);
+      sound.sfx.match(chain);
       // Счётчик цели уменьшается на каждом взрыве, в том числе на каскадах (фишки упали и собрались сами).
       st.got.forEach((n, c) => { if (c in goals) goals[c] = Math.max(0, goals[c] - n); });
       renderHud();
@@ -182,9 +188,11 @@ async function swap(a, b) {
     progress.stars++;
     saver.save(progress);
     renderHud();
+    sound.sfx.win();
     await view.celebrate();
     showOverlay('Уровень пройден! +1 ★', [['Домой', showHouse]]);
   } else if (moves === 0) {
+    sound.sfx.lose();
     showOverlay('Ходы закончились', [['Ещё раз', startLevel], ['Домой', showHouse]]);
   } else {
     busy = false;
@@ -203,7 +211,18 @@ function tap(i) {
 }
 
 $('restart').addEventListener('click', () => { if (!busy) startLevel(); });
-$('home').addEventListener('click', () => { if (!busy) showHouse(); });
+$('home').addEventListener('click', () => { if (!busy) { sound.sfx.tap(); showHouse(); } });
+
+// --- Звук: включается первым касанием (так требует браузер), кнопка 🔊/🔇 ---
+function renderSoundButtons() {
+  document.querySelectorAll('button.sound').forEach((b) => { b.textContent = sound.isEnabled() ? '🔊' : '🔇'; });
+}
+document.querySelectorAll('button.sound').forEach((b) => b.addEventListener('click', () => {
+  sound.setEnabled(!sound.isEnabled());
+  renderSoundButtons();
+}));
+document.addEventListener('pointerdown', () => sound.unlock(), { capture: true });
+renderSoundButtons();
 $('play').addEventListener('click', play);
 
 // --- Жизненный цикл: сворачивание, потеря фокуса ---
@@ -211,10 +230,12 @@ function setupLifecycle() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {
       view.cancelPress();
+      sound.pause();
       saver.flush();
       ysdk?.features?.GameplayAPI?.stop();
     } else {
       ysdk?.features?.GameplayAPI?.start();
+      sound.resume();
       updateIfNeeded();
     }
   });
@@ -233,6 +254,7 @@ async function start() {
   view = await createView($('stage'));
   view.onSwap = swap;
   view.onTap = tap;
+  view.onBonus = (kind) => (kind === 'h' || kind === 'v' ? sound.sfx.line() : sound.sfx[kind]());
   setupLifecycle();
   showHouse();
   info(ysdk ? 'Меняй соседние фишки местами: 3 в ряд' : 'Локальный режим (без SDK) · меняй соседние фишки');
