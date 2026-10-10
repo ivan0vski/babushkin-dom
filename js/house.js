@@ -32,7 +32,7 @@ export const OPEN_AT_ONCE = 2;
 export const MAX_STREAK = 3;
 
 export function newProgress() {
-  return { level: 1, stars: 0, done: [], room: 0, streak: 0 };
+  return { level: 1, stars: 0, done: [], room: 0, streak: 0, intro: false };
 }
 
 // Проверка сохранения: всё неизвестное или испорченное — в значения по умолчанию.
@@ -43,7 +43,7 @@ export function sanitizeProgress(p) {
   const done = Array.isArray(p.done) ? [...new Set(p.done.filter((id) => known.has(id)))] : [];
   const room = ok(p.room, 0) ? Math.min(p.room, ROOMS.length - 1) : 0;
   const streak = ok(p.streak, 0) ? Math.min(p.streak, MAX_STREAK) : 0;
-  return { level: p.level, stars: p.stars, done, room, streak };
+  return { level: p.level, stars: p.stars, done, room, streak, intro: p.intro === true };
 }
 
 export function currentRoom(progress) {

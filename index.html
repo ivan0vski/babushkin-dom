@@ -38,6 +38,7 @@
       <h1 id="room-name">Чердак</h1>
       <span class="buttons">
         <span id="house-stars" class="star-count">★ 0</span>
+        <button id="album-btn" type="button">Альбом</button>
         <button class="sound" type="button" aria-label="Звук">🔊</button>
       </span>
     </header>
@@ -69,6 +70,14 @@
     <button id="next-room" type="button" hidden></button>
     <button id="play" type="button">Играть</button>
     <p id="streak"></p>
+  </div>
+  <!-- История: находка после задачи, письмо за комнату, альбом -->
+  <div id="story" hidden>
+    <div class="story-card">
+      <h2 id="story-title"></h2>
+      <div id="story-text"></div>
+      <button id="story-btn" type="button">Дальше</button>
+    </div>
   </div>
   <!-- Переход между экранами: тёплый круг закрывает экран, карточка уровня, круг раскрывается -->
   <div id="wipe" hidden>

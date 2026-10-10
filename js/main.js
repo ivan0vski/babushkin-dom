@@ -6,6 +6,7 @@ import { ROOMS, sanitizeProgress, availableTasks, doTask, roomPercent, roomCompl
 import { createSaver, loadSave } from './save.js';
 import { checkForUpdate } from './update.js';
 import * as sound from './sound.js';
+import { INTRO, TASK_STORIES, ROOM_LETTERS } from './story.js';
 
 const $ = (id) => document.getElementById(id);
 let view; // сцена Phaser с полем
@@ -139,7 +140,12 @@ function renderHouse(note = '') {
       saver.save(progress);
       sound.sfx.task();
       list.querySelectorAll('button').forEach((x) => { x.disabled = true; });
-      flyStar(btn, $('room-' + currentRoom(progress).id)).then(() => renderHouse(roomComplete(progress) ? roomDoneNote() : 'Готово!'));
+      flyStar(btn, $('room-' + currentRoom(progress).id)).then(async () => {
+        renderHouse(roomComplete(progress) ? roomDoneNote() : 'Готово!');
+        await sleep(500); // дать увидеть, как изменилась комната
+        await showStory(TASK_STORIES[t.id]);
+        if (roomComplete(progress)) await showStory(ROOM_LETTERS[currentRoom(progress).id]);
+      });
     };
     li.append(t.name, btn);
     list.appendChild(li);
@@ -187,6 +193,51 @@ function streakText() {
   const b = streakBonuses(progress);
   return b.length ? `🔥 Серия побед ${progress.streak} · на старте: ${b.map((k) => BONUS_NAMES[k]).join(', ')}` : '';
 }
+
+// --- Истории ---
+// Окно с историей; ждёт нажатия «Дальше». Несколько историй — по очереди.
+function showStory(story, html = null, button = 'Дальше') {
+  if (!story) return Promise.resolve();
+  $('story-title').textContent = story.title;
+  $('story-btn').textContent = button;
+  const t = $('story-text');
+  if (html) t.replaceChildren(...html); else t.textContent = story.text;
+  const box = $('story');
+  box.hidden = false;
+  box.firstElementChild.classList.remove('in');
+  void box.offsetWidth;
+  box.firstElementChild.classList.add('in');
+  return new Promise((resolve) => {
+    $('story-btn').onclick = () => {
+      sound.sfx.tap();
+      box.hidden = true;
+      resolve();
+    };
+  });
+}
+
+// Альбом: всё найденное в доме, по порядку.
+function showAlbum() {
+  sound.sfx.tap();
+  const found = [INTRO, ...progress.done.map((id) => TASK_STORIES[id])].filter(Boolean);
+  for (const r of ROOMS) if (r.tasks.every((t) => progress.done.includes(t.id))) found.push(ROOM_LETTERS[r.id]);
+  const items = found.map((st) => {
+    const d = document.createElement('div');
+    d.className = 'album-item';
+    const h = document.createElement('b');
+    h.textContent = st.title;
+    d.append(h, st.text);
+    return d;
+  });
+  if (found.length === 1) {
+    const d = document.createElement('p');
+    d.textContent = 'Делай ремонт — в доме найдутся новые истории.';
+    items.push(d);
+  }
+  showStory({ title: 'Семейный альбом' }, items, 'Закрыть');
+}
+
+$('album-btn').addEventListener('click', showAlbum);
 
 // --- Переходы ---
 let wiping = false;
@@ -384,6 +435,12 @@ async function start() {
   view.onBonus = (kind) => (kind === 'h' || kind === 'v' ? sound.sfx.line() : sound.sfx[kind]());
   setupLifecycle();
   showHouse();
+  if (!progress.intro) {
+    showStory(INTRO).then(() => {
+      progress = { ...progress, intro: true };
+      saver.save(progress);
+    });
+  }
   info(ysdk ? 'Меняй соседние фишки местами: 3 в ряд' : 'Локальный режим (без SDK) · меняй соседние фишки');
   // Для автопроверки в браузере: ?debug открывает доступ к полю и ходу.
   if (new URLSearchParams(location.search).has('debug')) window.debugGame = { board: () => board, swap, moves: () => moves, progress: () => progress };
