@@ -1,5 +1,5 @@
 {
-  "v": "8caf36f5a6",
+  "v": "5d7e4cea5a",
   "files": [
     "assets/tiles/apple.png",
     "assets/tiles/cup.png",
@@ -16,6 +16,7 @@
     "js/main.js",
     "js/match3.js",
     "js/save.js",
+    "js/sound.js",
     "js/update.js",
     "js/view.js",
     "lib/phaser.min.js",
