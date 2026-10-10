@@ -9,78 +9,16 @@ export const COLORS = ['#d9534f', '#3b7dd8', '#4caf50', '#f0b429', '#9b59b6'];
 const cx = (i) => (i % W) * CELL + CELL / 2;
 const cy = (i) => Math.floor(i / W) * CELL + CELL / 2;
 
+// Картинки фишек (game/assets/tiles, делает scripts/prep_art.py): цвет → предмет.
+export const TILE_FILES = ['apple', 'cup', 'mitten', 'pie', 'lilac'];
+const BONUS_FILES = { h: 'rolling_pin', v: 'rolling_pin', bomb: 'jam', color: 'samovar' };
+const BASE = (CELL * 0.92) / 256; // картинки 256×256 → размер в клетке
+
 export function texKey(t) {
-  return t.s === 'color' ? 'tile-color' : `tile-${t.c}${t.s ? '-' + t.s : ''}`;
-}
-
-// --- Заглушки фишек: рисуются кодом. Потом заменятся картинками с теми же ключами. ---
-function shapePath(ctx, c, s) {
-  const m = 14;
-  const a = m;
-  const b = s - m;
-  const mid = s / 2;
-  ctx.beginPath();
-  if (c === 0) ctx.arc(mid, mid, mid - m, 0, Math.PI * 2);
-  if (c === 1) ctx.roundRect(a, a, b - a, b - a, 12);
-  if (c === 2) { ctx.moveTo(mid, a - 4); ctx.lineTo(b + 4, mid); ctx.lineTo(mid, b + 4); ctx.lineTo(a - 4, mid); }
-  if (c === 3) { ctx.moveTo(mid, a - 2); ctx.lineTo(b + 2, b); ctx.lineTo(a - 2, b); }
-  if (c === 4) {
-    for (let k = 0; k < 6; k++) {
-      const ang = Math.PI / 3 * k;
-      ctx.lineTo(mid + (mid - m + 2) * Math.cos(ang), mid + (mid - m + 2) * Math.sin(ang));
-    }
-  }
-  ctx.closePath();
-}
-
-function drawTile(c, special) {
-  const s = CELL;
-  const cv = document.createElement('canvas');
-  cv.width = s;
-  cv.height = s;
-  const ctx = cv.getContext('2d');
-  if (special === 'color') {
-    const g = ctx.createConicGradient ? ctx.createConicGradient(0, s / 2, s / 2) : null;
-    if (g) COLORS.concat(COLORS[0]).forEach((col, k) => g.addColorStop(k / COLORS.length, col));
-    ctx.fillStyle = g || '#fff';
-    ctx.beginPath();
-    ctx.arc(s / 2, s / 2, s / 2 - 12, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(s / 2, s / 2, 12, 0, Math.PI * 2);
-    ctx.fill();
-    return cv;
-  }
-  shapePath(ctx, c, s);
-  const grad = ctx.createLinearGradient(0, 10, 0, s - 10);
-  grad.addColorStop(0, '#ffffff');
-  grad.addColorStop(0.18, COLORS[c]);
-  grad.addColorStop(1, COLORS[c]);
-  ctx.fillStyle = grad;
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-  ctx.stroke();
-  ctx.fillStyle = '#fff';
-  ctx.strokeStyle = '#fff';
-  if (special === 'h') ctx.fillRect(16, s / 2 - 7, s - 32, 14);
-  if (special === 'v') ctx.fillRect(s / 2 - 7, 16, 14, s - 32);
-  if (special === 'bomb') {
-    ctx.lineWidth = 7;
-    ctx.beginPath();
-    ctx.arc(s / 2, s / 2, 17, 0, Math.PI * 2);
-    ctx.stroke();
-  }
-  return cv;
+  return t.s ? BONUS_FILES[t.s] : TILE_FILES[t.c];
 }
 
 function makeTextures(scene) {
-  for (let c = 0; c < COLORS.length; c++) {
-    for (const sp of [null, 'h', 'v', 'bomb']) scene.textures.addCanvas(texKey({ c, s: sp }), drawTile(c, sp));
-  }
-  scene.textures.addCanvas('tile-color', drawTile(-1, 'color'));
-
   const spark = document.createElement('canvas');
   spark.width = spark.height = 24;
   const sc = spark.getContext('2d');
@@ -110,6 +48,12 @@ class BoardScene extends Phaser.Scene {
     this.press = null;
     this.onSwap = () => {};
     this.onTap = () => {};
+  }
+
+  preload() {
+    for (const name of new Set([...TILE_FILES, ...Object.values(BONUS_FILES)])) {
+      this.load.image(name, `assets/tiles/${name}.png`);
+    }
   }
 
   create() {
@@ -193,14 +137,14 @@ class BoardScene extends Phaser.Scene {
     const rows = Math.abs(y - sp.y) / CELL;
     const ms = Math.min(140 + 55 * rows, 520);
     this.tweens.killTweensOf(sp);
-    sp.setScale(1);
+    sp.setScale(BASE);
     this.tweens.add({
       targets: sp,
       y,
       duration: ms,
       delay,
       ease: 'Quad.easeIn',
-      onComplete: () => this.tweens.add({ targets: sp, scaleY: 0.86, scaleX: 1.08, duration: 70, yoyo: true, ease: 'Quad.easeOut' }),
+      onComplete: () => this.tweens.add({ targets: sp, scaleY: 0.86 * BASE, scaleX: 1.08 * BASE, duration: 70, yoyo: true, ease: 'Quad.easeOut' }),
     });
     return delay + ms + 140;
   }
@@ -227,11 +171,12 @@ class BoardScene extends Phaser.Scene {
       if (!sp) {
         if (kind === 'clear') {
           // Новый бонус появляется на месте собранной группы.
-          sp = this.add.image(x, y, texKey(t)).setDepth(2).setScale(0);
-          this.tweens.add({ targets: sp, scale: 1, duration: 280, ease: 'Back.easeOut' });
+          sp = this.add.image(x, y, texKey(t)).setDepth(2).setScale(0).setAngle(t.s === 'v' ? 90 : 0);
+          this.tweens.add({ targets: sp, scale: BASE, duration: 280, ease: 'Back.easeOut' });
           dur = Math.max(dur, 280);
         } else {
-          sp = this.add.image(x, y - newInCol[i % W] * CELL - (kind === 'init' ? CELL : 0), texKey(t)).setDepth(1);
+          sp = this.add.image(x, y - newInCol[i % W] * CELL - (kind === 'init' ? CELL : 0), texKey(t))
+            .setDepth(1).setScale(BASE).setAngle(t.s === 'v' ? 90 : 0);
           const delay = kind === 'init' ? (H - 1 - Math.floor(i / W)) * 25 + (i % W) * 12 : 0;
           dur = Math.max(dur, this.fallTo(sp, y, delay));
         }
@@ -248,7 +193,7 @@ class BoardScene extends Phaser.Scene {
         dur = Math.max(dur, this.fallTo(sp, y));
       } else {
         this.tweens.killTweensOf(sp);
-        this.tweens.add({ targets: sp, x, y, scale: 1, duration: 170, ease: 'Quad.easeOut' });
+        this.tweens.add({ targets: sp, x, y, scale: BASE, duration: 170, ease: 'Quad.easeOut' });
         dur = Math.max(dur, 170);
       }
     });
@@ -260,7 +205,7 @@ class BoardScene extends Phaser.Scene {
       if (sp.tile.s) bonusFired = true;
       if (sp.tile.c >= 0) this.bursts[sp.tile.c].explode(7, sp.x, sp.y);
       this.tweens.killTweensOf(sp);
-      this.tweens.add({ targets: sp, scale: 1.25, alpha: 0, duration: 180, ease: 'Quad.easeOut', onComplete: () => sp.destroy() });
+      this.tweens.add({ targets: sp, scale: 1.25 * BASE, alpha: 0, duration: 180, ease: 'Quad.easeOut', onComplete: () => sp.destroy() });
       dur = Math.max(dur, 180);
     }
     if (bonusFired) this.cameras.main.shake(160, 0.008);

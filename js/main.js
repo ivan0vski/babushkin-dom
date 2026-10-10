@@ -1,5 +1,5 @@
 import { createBoard, trySwap, isAdjacent } from './match3.js';
-import { createView } from './view.js';
+import { createView, TILE_FILES } from './view.js';
 import { levelConfig } from './levels.js';
 import { createSaver, loadSave } from './save.js';
 
@@ -42,10 +42,11 @@ export function sanitizeProgress(p) {
   return p && ok(p.level, 1) && ok(p.stars, 0) ? { level: p.level, stars: p.stars } : { level: 1, stars: 0 };
 }
 
-function gem(t) {
-  const d = document.createElement('div');
-  d.className = `gem c${t.c}` + (t.s ? ` s-${t.s}` : '');
-  return d;
+function tileIcon(c) {
+  const img = document.createElement('img');
+  img.src = `assets/tiles/${TILE_FILES[c]}.png`;
+  img.alt = '';
+  return img;
 }
 
 function renderHud() {
@@ -57,7 +58,7 @@ function renderHud() {
   for (const [c, n] of Object.entries(goals)) {
     const g = document.createElement('div');
     g.className = 'goal' + (n === 0 ? ' done' : '');
-    g.append(gem({ c }), n === 0 ? '✓' : String(n));
+    g.append(tileIcon(c), n === 0 ? '✓' : String(n));
     goalsEl.appendChild(g);
   }
 }

@@ -1,6 +1,7 @@
 // Логика «3 в ряд»: поле, совпадения, бонусы, падение, перемешивание.
 // Без DOM — проверяется тестами (tests/match3.test.js).
-// Фишка: { id, c, s } — c: цвет 0..colors-1 (у радуги -1), s: бонус null | 'h' | 'v' | 'bomb' | 'color'.
+// Фишка: { id, c, s } — c: цвет 0..colors-1, s: бонус null | 'h' | 'v' | 'bomb' | 'color'.
+// Бонусы бесцветные (c = -1, как в жанре): в ряд не собираются, срабатывают от сдвига или от другого бонуса.
 export const W = 8;
 export const H = 8;
 
@@ -174,7 +175,7 @@ function clearStep(b, toClear, groups, prefer, fired, collected, colorTarget = n
     g.cells.forEach((i) => toClear.add(i));
     if (!g.special) continue;
     const pos = prefer.find((p) => g.cells.includes(p)) ?? g.cells[Math.floor(g.cells.length / 2)];
-    creations.push({ pos, c: g.special === 'color' ? -1 : g.c, s: g.special });
+    creations.push({ pos, c: -1, s: g.special });
   }
   const queue = [...toClear];
   while (queue.length) {
@@ -232,9 +233,11 @@ export function trySwap(b, a, z, rng = Math.random) {
   if (ta.s === 'color' && tz.s === 'color') {
     b.cells.forEach((_, i) => { toClear.add(i); fired.add(i); });
   } else if (ta.s === 'color' || tz.s === 'color') {
-    const [bombPos, other] = ta.s === 'color' ? [a, tz] : [z, ta];
-    colorTarget = other.c;
+    const [bombPos, other, otherPos] = ta.s === 'color' ? [a, tz, z] : [z, ta, a];
+    // С обычной фишкой — убирает её цвет; с другим бонусом — самый частый цвет, и тот бонус тоже срабатывает.
+    colorTarget = other.c >= 0 ? other.c : mostCommonColor(b);
     toClear.add(bombPos);
+    toClear.add(otherPos);
     fired.add(bombPos);
     b.cells.forEach((t, i) => { if (t.c === colorTarget) toClear.add(i); });
   } else {

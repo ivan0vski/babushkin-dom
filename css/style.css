@@ -88,11 +88,9 @@ button {
   font-weight: 700;
 }
 
-.goal .gem {
-  position: relative;
-  width: 26px;
-  height: 26px;
-  inset: auto;
+.goal img {
+  width: 34px;
+  height: 34px;
 }
 
 .goal.done {
@@ -114,19 +112,6 @@ button {
   width: 100%;
   height: 100%;
 }
-
-.gem {
-  position: absolute;
-  inset: 12%;
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
-}
-
-/* Заглушки фишек: цвет + форма, чтобы различались и без цвета */
-.c0 { background: #d9534f; border-radius: 50%; }
-.c1 { background: #3b7dd8; border-radius: 4px; }
-.c2 { background: #4caf50; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); box-shadow: none; }
-.c3 { background: #f0b429; clip-path: polygon(50% 4%, 100% 96%, 0 96%); box-shadow: none; }
-.c4 { background: #9b59b6; clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); box-shadow: none; }
 
 #info {
   margin: 0;
