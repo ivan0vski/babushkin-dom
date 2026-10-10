@@ -160,10 +160,14 @@ async function swap(a, b) {
     return;
   }
   moves--;
-  res.collected.forEach((n, c) => { if (c in goals) goals[c] = Math.max(0, goals[c] - n); });
+  renderHud();
   for (const st of res.steps) {
     const anim = view.render(st.cells, st.kind);
-    if (st.kind === 'clear') renderHud();
+    if (st.got) {
+      // Счётчик цели уменьшается на каждом взрыве, в том числе на каскадах (фишки упали и собрались сами).
+      st.got.forEach((n, c) => { if (c in goals) goals[c] = Math.max(0, goals[c] - n); });
+      renderHud();
+    }
     await anim;
   }
   renderHud();

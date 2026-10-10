@@ -220,7 +220,8 @@ export function shuffle(b, rng = Math.random) {
 const snap = (b, kind) => ({ kind, cells: b.cells.map((t) => (t ? { ...t } : null)) });
 
 // Ход игрока. null — ход невозможен (не соседи или ничего не совпало), поле не меняется.
-// Иначе { steps: [{ kind, cells }], collected: [кол-во по цветам] } — шаги для анимации.
+// Иначе { steps: [{ kind, cells, got? }], collected: [кол-во по цветам] } — шаги для анимации;
+// у шагов 'clear' в got — сколько фишек каждого цвета собрал именно этот взрыв (каскады тоже).
 export function trySwap(b, a, z, rng = Math.random) {
   if (!isAdjacent(a, z) || !b.cells[a] || !b.cells[z]) return null;
   swapCells(b.cells, a, z);
@@ -255,8 +256,10 @@ export function trySwap(b, a, z, rng = Math.random) {
   const steps = [snap(b, 'swap')];
   let prefer = [a, z];
   for (;;) {
-    clearStep(b, toClear, groups, prefer, fired, collected, colorTarget);
-    steps.push(snap(b, 'clear'));
+    const got = new Array(b.colors).fill(0);
+    clearStep(b, toClear, groups, prefer, fired, got, colorTarget);
+    got.forEach((n, c) => { collected[c] += n; });
+    steps.push({ ...snap(b, 'clear'), got });
     gravity(b, rng);
     steps.push(snap(b, 'fall'));
     groups = findMatches(b.cells);
