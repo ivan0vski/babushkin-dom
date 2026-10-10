@@ -244,7 +244,7 @@ button {
 }
 
 .room.attic {
-  clip-path: polygon(0 22%, 50% 0, 100% 22%, 100% 100%, 0 100%); /* скат крыши */
+  background: url(../assets/rooms/attic_bg.jpg) center / cover;
 }
 
 .room > div {
@@ -263,82 +263,82 @@ button {
   color: #f3e6cc;
 }
 
+/* Чердак: картинки в game/assets/rooms (scripts/prep_rooms.py). Картинки «после ремонта» стоят
+   в разметке сразу с opacity 0 — грузятся заранее, без мигания при ремонте. */
 .r-window {
-  left: 40%;
-  top: 22%;
-  width: 20%;
+  left: 39%;
+  top: 27%;
+  width: 22%;
   aspect-ratio: 1;
-  border: 5px solid #5b3d22;
-  border-radius: 6px 6px 0 0;
-  background: radial-gradient(circle at 30% 40%, #6d6a5a 0 20%, transparent 21%), #8f8a75; /* грязное */
+  background: url(../assets/rooms/attic_window_dirty.png) center / contain no-repeat;
 }
-.done-window .r-window { background: linear-gradient(160deg, #d8f0ff, #9fd3f5); }
+.r-window::after {
+  content: '';
+  position: absolute;
+  inset: 4%;
+  background: url(../assets/rooms/attic_window_clean.png) center / contain no-repeat;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+.done-window .r-window::after { opacity: 1; }
 
 .r-curtains {
   position: absolute;
-  inset: -6px -14px auto;
-  height: 110%;
+  z-index: 1;
+  left: -32%;
+  right: -32%;
+  top: -14%;
+  height: 128%;
   opacity: 0;
-  background:
-    repeating-linear-gradient(90deg, #d9534f 0 6px, #f3e6cc 6px 12px) left / 30% 100% no-repeat,
-    repeating-linear-gradient(90deg, #d9534f 0 6px, #f3e6cc 6px 12px) right / 30% 100% no-repeat;
+  transition: opacity 0.5s;
+  background: url(../assets/rooms/attic_curtains.png) center / contain no-repeat;
 }
 .done-curtains .r-curtains { opacity: 1; }
 
+/* Новые доски — заплатки на двух дырах в полу фона */
 .r-floor {
   left: 0;
   right: 0;
   bottom: 0;
-  height: 22%;
+  height: 27%;
+  opacity: 0;
   background:
-    radial-gradient(ellipse at 25% 50%, #2b1d10 0 12%, transparent 13%),
-    radial-gradient(ellipse at 70% 40%, #2b1d10 0 9%, transparent 10%),
-    repeating-linear-gradient(90deg, #6b4a2c 0 38px, #5a3c22 38px 40px); /* дыры в полу */
+    url(../assets/rooms/attic_floor_new.png) 6% 48% / 30% auto no-repeat,
+    url(../assets/rooms/attic_floor_new.png) 92% 56% / 30% auto no-repeat,
+    linear-gradient(rgba(255, 196, 120, 0.16), rgba(255, 196, 120, 0.16));
 }
-.done-floor .r-floor { background: repeating-linear-gradient(90deg, #b5834f 0 38px, #9c6d3f 38px 40px); }
+.done-floor .r-floor { opacity: 1; }
 
 .r-junk {
-  left: 8%;
-  bottom: 14%;
-  width: 34%;
-  height: 30%;
+  left: 3%;
+  bottom: 5%;
+  width: 36%;
+  aspect-ratio: 1.15;
+  background: url(../assets/rooms/attic_junk.png) center bottom / contain no-repeat;
 }
-.r-junk i {
-  position: absolute;
-  bottom: 0;
-  width: 45%;
-  height: 55%;
-  background: #6f5a45;
-  border: 2px solid #3d2c1c;
-  transform: rotate(-6deg);
-}
-.r-junk i:nth-child(2) { left: 40%; height: 45%; transform: rotate(8deg); background: #7d6650; }
-.r-junk i:nth-child(3) { left: 20%; bottom: 45%; height: 45%; transform: rotate(-14deg); background: #5e4a38; }
 .done-junk .r-junk { opacity: 0; transform: translateY(20px); }
 
 .r-chest {
-  right: 10%;
-  bottom: 12%;
-  width: 24%;
-  height: 22%;
-  border-radius: 10px 10px 4px 4px;
-  background: linear-gradient(#a0522d 0 40%, #7a3e22 40% 44%, #a0522d 44%);
-  border: 3px solid #4a2a12;
+  right: 7%;
+  bottom: 5%;
+  width: 27%;
+  aspect-ratio: 1.2;
+  background: url(../assets/rooms/attic_chest.png) center bottom / contain no-repeat;
   opacity: 0;
   transform: scale(0.6);
 }
 .done-chest .r-chest { opacity: 1; transform: scale(1); }
 
 .r-lamp {
-  left: 22%;
-  top: 18%;
-  width: 7%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: #4a4a40;
-  box-shadow: 0 -40px 0 -14px #3d2c1c; /* шнур */
+  left: 17%;
+  top: 0;
+  width: 13%;
+  height: 40%;
+  background: url(../assets/rooms/attic_lamp.png) center top / contain no-repeat;
+  filter: brightness(0.5) saturate(0.4); /* выключена */
+  transition: filter 0.6s;
 }
-.done-lamp .r-lamp { background: #ffe08a; box-shadow: 0 0 40px 22px rgba(255, 210, 120, 0.7); }
+.done-lamp .r-lamp { filter: drop-shadow(0 6px 16px rgba(255, 210, 120, 0.95)); }
 
 .r-dark {
   inset: 0;
