@@ -43,7 +43,7 @@
       </span>
     </header>
     <div id="cozy"><div id="cozy-fill"></div><span id="cozy-text">Уют 0%</span></div>
-    <!-- Комнаты: каждая задача включает класс done-<id> на своей комнате. Чердак — картинки, кухня — пока CSS-заглушки -->
+    <!-- Комнаты: каждая задача включает класс done-<id> на своей комнате. Картинки — game/assets/rooms -->
     <div class="room attic" id="room-attic">
       <div class="r-window"><div class="r-curtains"></div></div>
       <div class="r-lamp"></div>
@@ -54,16 +54,11 @@
       <div class="r-dust"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     </div>
     <div class="room kitchen" id="room-kitchen" hidden>
-      <div class="k-window"></div>
-      <div class="k-floor"></div>
-      <div class="r-stove" data-label="печка"><div class="k-mouth"></div></div>
-      <div class="r-table">
-        <div class="r-cloth"></div>
-        <div class="r-dishes"><i></i><i></i><i></i></div>
-        <div class="r-samovar"></div>
-        <div class="r-pies"><i></i><i></i></div>
-        <div class="k-legs"></div>
-      </div>
+      <div class="r-stove"><div class="k-fire"></div></div>
+      <div class="r-table"><div class="k-fixed"></div><div class="r-cloth"></div></div>
+      <div class="r-dishes"><div class="k-clean"></div></div>
+      <div class="r-samovar"></div>
+      <div class="r-pies"></div>
     </div>
     <ul id="tasks"></ul>
     <p id="house-note"></p>
