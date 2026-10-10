@@ -105,55 +105,20 @@ button {
   background: #c9a97a;
   border-radius: 10px;
   aspect-ratio: 1;
+  overflow: hidden;
   width: min(calc(100vw - 16px), calc(100vh - 160px), 560px);
   width: min(calc(100vw - 16px), calc(100dvh - 160px), 560px);
 }
 
-#grid {
-  position: relative;
+#stage {
   width: 100%;
   height: 100%;
-  overflow: hidden;
-  border-radius: 6px;
-  background:
-    repeating-conic-gradient(#e8d3ac 0 25%, #e0c79b 0 50%) 0 0 / 25% 25%;
-}
-
-.tile {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 12.5%;
-  height: 12.5%;
-  transform: translate(calc(var(--x) * 100%), calc(var(--y) * 100%));
-  transition: transform 0.2s ease-in;
-}
-
-.tile.selected .gem {
-  outline: 3px solid #fff;
-  outline-offset: 1px;
-}
-
-.tile.gone .gem {
-  transform: scale(0);
-  opacity: 0;
 }
 
 .gem {
   position: absolute;
   inset: 12%;
-  transition: transform 0.15s, opacity 0.15s;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.25);
-}
-
-.tile.pop .gem {
-  animation: pop 0.25s ease-out;
-}
-
-@keyframes pop {
-  0% { transform: scale(0.4); }
-  70% { transform: scale(1.2); }
-  100% { transform: scale(1); }
 }
 
 /* Заглушки фишек: цвет + форма, чтобы различались и без цвета */
@@ -162,22 +127,6 @@ button {
 .c2 { background: #4caf50; clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); box-shadow: none; }
 .c3 { background: #f0b429; clip-path: polygon(50% 4%, 100% 96%, 0 96%); box-shadow: none; }
 .c4 { background: #9b59b6; clip-path: polygon(25% 4%, 75% 4%, 100% 50%, 75% 96%, 25% 96%, 0 50%); box-shadow: none; }
-
-/* Бонусы */
-.s-h::after, .s-v::after, .s-bomb::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  background: #fff;
-}
-.s-h::after { height: 22%; width: 90%; }
-.s-v::after { width: 22%; height: 90%; }
-.s-bomb::after { width: 44%; height: 44%; border-radius: 50%; background: none; border: 4px solid #fff; box-sizing: border-box; }
-.s-color {
-  border-radius: 50%;
-  background: conic-gradient(#d9534f, #f0b429, #4caf50, #3b7dd8, #9b59b6, #d9534f);
-}
 
 #info {
   margin: 0;

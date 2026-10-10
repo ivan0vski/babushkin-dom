@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
   <!-- SDK отдаёт сервер Яндекс Игр; локально файла нет, игра работает без него -->
   <script src="/sdk.js"></script>
+  <script src="lib/phaser.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </head>
 <body>
@@ -19,7 +20,7 @@
     <div id="moves"><b>20</b><small>ходов</small></div>
     <div id="goals"></div>
   </section>
-  <main id="board"><div id="grid"></div></main>
+  <main id="board"><div id="stage"></div></main>
   <p id="info"></p>
   <div id="overlay" hidden>
     <div class="panel">
