@@ -36,9 +36,14 @@ h1 {
   font-size: 20px;
 }
 
-#stars {
+#stars, .star-count {
   font-weight: 700;
   color: #b7791f;
+}
+
+.buttons {
+  display: flex;
+  gap: 6px;
 }
 
 button {
@@ -155,4 +160,223 @@ button {
 .panel button {
   font-size: 18px;
   padding: 10px 24px;
+  margin: 4px;
+}
+
+.panel button[hidden] {
+  display: none;
+}
+
+/* --- Экран дома --- */
+#house {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background: #f3e6cc;
+}
+
+#house[hidden] {
+  display: none;
+}
+
+#house > * {
+  width: min(calc(100vw - 32px), 520px);
+}
+
+#house header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#cozy {
+  position: relative;
+  height: 22px;
+  border-radius: 11px;
+  background: #e0c79b;
+  overflow: hidden;
+}
+
+#cozy-fill {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #f0b429, #e07b39);
+  transition: width 0.6s ease-out;
+}
+
+#cozy-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+#room {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  height: min(36vh, calc((100vw - 32px) * 3 / 4), 390px);
+  height: min(36dvh, calc((100vw - 32px) * 3 / 4), 390px);
+  width: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(#8a6a48, #a07c55);
+  clip-path: polygon(0 22%, 50% 0, 100% 22%, 100% 100%, 0 100%); /* скат крыши */
+}
+
+#room > div {
+  position: absolute;
+  transition: background 0.5s, opacity 0.5s, transform 0.4s;
+}
+
+#room [data-label]::after {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -16px;
+  font-size: 11px;
+  text-align: center;
+  color: #f3e6cc;
+}
+
+.r-window {
+  left: 40%;
+  top: 22%;
+  width: 20%;
+  aspect-ratio: 1;
+  border: 5px solid #5b3d22;
+  border-radius: 6px 6px 0 0;
+  background: radial-gradient(circle at 30% 40%, #6d6a5a 0 20%, transparent 21%), #8f8a75; /* грязное */
+}
+.done-window .r-window { background: linear-gradient(160deg, #d8f0ff, #9fd3f5); }
+
+.r-curtains {
+  position: absolute;
+  inset: -6px -14px auto;
+  height: 110%;
+  opacity: 0;
+  background:
+    repeating-linear-gradient(90deg, #d9534f 0 6px, #f3e6cc 6px 12px) left / 30% 100% no-repeat,
+    repeating-linear-gradient(90deg, #d9534f 0 6px, #f3e6cc 6px 12px) right / 30% 100% no-repeat;
+}
+.done-curtains .r-curtains { opacity: 1; }
+
+.r-floor {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 22%;
+  background:
+    radial-gradient(ellipse at 25% 50%, #2b1d10 0 12%, transparent 13%),
+    radial-gradient(ellipse at 70% 40%, #2b1d10 0 9%, transparent 10%),
+    repeating-linear-gradient(90deg, #6b4a2c 0 38px, #5a3c22 38px 40px); /* дыры в полу */
+}
+.done-floor .r-floor { background: repeating-linear-gradient(90deg, #b5834f 0 38px, #9c6d3f 38px 40px); }
+
+.r-junk {
+  left: 8%;
+  bottom: 14%;
+  width: 34%;
+  height: 30%;
+}
+.r-junk i {
+  position: absolute;
+  bottom: 0;
+  width: 45%;
+  height: 55%;
+  background: #6f5a45;
+  border: 2px solid #3d2c1c;
+  transform: rotate(-6deg);
+}
+.r-junk i:nth-child(2) { left: 40%; height: 45%; transform: rotate(8deg); background: #7d6650; }
+.r-junk i:nth-child(3) { left: 20%; bottom: 45%; height: 45%; transform: rotate(-14deg); background: #5e4a38; }
+.done-junk .r-junk { opacity: 0; transform: translateY(20px); }
+
+.r-chest {
+  right: 10%;
+  bottom: 12%;
+  width: 24%;
+  height: 22%;
+  border-radius: 10px 10px 4px 4px;
+  background: linear-gradient(#a0522d 0 40%, #7a3e22 40% 44%, #a0522d 44%);
+  border: 3px solid #4a2a12;
+  opacity: 0;
+  transform: scale(0.6);
+}
+.done-chest .r-chest { opacity: 1; transform: scale(1); }
+
+.r-lamp {
+  left: 22%;
+  top: 18%;
+  width: 7%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #4a4a40;
+  box-shadow: 0 -40px 0 -14px #3d2c1c; /* шнур */
+}
+.done-lamp .r-lamp { background: #ffe08a; box-shadow: 0 0 40px 22px rgba(255, 210, 120, 0.7); }
+
+.r-dark {
+  inset: 0;
+  background: rgba(20, 12, 5, 0.38);
+  pointer-events: none;
+}
+.done-lamp .r-dark { opacity: 0; }
+
+#room .changed {
+  animation: pop 0.5s ease-out;
+}
+
+#tasks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#tasks li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #e8d3ac;
+  font-size: 16px;
+}
+
+#tasks li button {
+  min-width: 64px;
+  font-weight: 700;
+  background: #f0b429;
+}
+
+#tasks li button.poor {
+  background: #d6c3a0;
+  color: #7a6a55;
+}
+
+#house-note {
+  margin: 0;
+  min-height: 20px;
+  text-align: center;
+  font-size: 14px;
+}
+
+#play {
+  font-size: 20px;
+  font-weight: 700;
+  padding: 14px;
+  background: #4caf50;
+  color: #fff;
+  border-radius: 14px;
 }

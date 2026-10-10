@@ -1,11 +1,12 @@
 import { createBoard, trySwap, isAdjacent } from './match3.js';
 import { createView, TILE_FILES } from './view.js';
 import { levelConfig } from './levels.js';
+import { ROOM, TASKS, sanitizeProgress, availableTasks, doTask, roomPercent } from './house.js';
 import { createSaver, loadSave } from './save.js';
 
 const $ = (id) => document.getElementById(id);
 let view; // сцена Phaser с полем
-let progress; // сохраняемое: { level, stars }
+let progress; // сохраняемое: { level, stars, done } — см. house.js
 let board;
 let moves;
 let goals; // цвет → сколько осталось собрать
@@ -35,11 +36,6 @@ function safeLocalStorage() {
   } catch {
     return null;
   }
-}
-
-export function sanitizeProgress(p) {
-  const ok = (n, min) => Number.isInteger(n) && n >= min;
-  return p && ok(p.level, 1) && ok(p.stars, 0) ? { level: p.level, stars: p.stars } : { level: 1, stars: 0 };
 }
 
 function tileIcon(c) {
@@ -80,11 +76,69 @@ function startLevel() {
   busy = false;
 }
 
-function showOverlay(text, btn, onClick) {
+// Окно поверх поля: текст и одна-две кнопки [[надпись, действие], ...].
+function showOverlay(text, buttons) {
   $('overlay-text').textContent = text;
-  $('overlay-btn').textContent = btn;
-  $('overlay-btn').onclick = onClick;
+  ['overlay-btn', 'overlay-btn2'].forEach((id, k) => {
+    const b = $(id);
+    b.hidden = !buttons[k];
+    if (buttons[k]) [b.textContent, b.onclick] = buttons[k];
+  });
   $('overlay').hidden = false;
+}
+
+// --- Дом ---
+let prevDone = [];
+
+function renderHouse(note = '') {
+  $('room-name').textContent = ROOM.name;
+  $('house-stars').textContent = '★ ' + progress.stars;
+  const pct = roomPercent(progress);
+  $('cozy-fill').style.width = pct + '%';
+  $('cozy-text').textContent = `Уют ${pct}%`;
+  const room = $('room');
+  room.className = progress.done.map((id) => 'done-' + id).join(' ');
+  for (const id of progress.done.filter((d) => !prevDone.includes(d))) {
+    const el = room.querySelector('.r-' + id);
+    el?.classList.remove('changed');
+    void el?.offsetWidth; // перезапуск анимации
+    el?.classList.add('changed');
+  }
+  prevDone = [...progress.done];
+
+  const list = $('tasks');
+  list.replaceChildren();
+  for (const t of availableTasks(progress)) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = `${t.cost} ★`;
+    btn.className = progress.stars < t.cost ? 'poor' : '';
+    btn.onclick = () => {
+      const next = doTask(progress, t.id);
+      if (!next) { renderHouse(`Нужно ★ ${t.cost} — пройди уровень, чтобы заработать звёзды`); return; }
+      progress = next;
+      saver.save(progress);
+      renderHouse(progress.done.length === TASKS.length ? 'Чердак восстановлен! Скоро откроется кухня.' : 'Готово!');
+    };
+    li.append(t.name, btn);
+    list.appendChild(li);
+  }
+  $('house-note').textContent = note || (progress.done.length === TASKS.length ? 'Чердак восстановлен! Скоро откроется кухня.' : '');
+  $('play').textContent = 'Играть · Уровень ' + progress.level;
+}
+
+function showHouse() {
+  $('overlay').hidden = true;
+  busy = true; // поле не принимает ходы, пока открыт дом
+  prevDone = [...progress.done]; // анимировать только то, что сделано сейчас
+  renderHouse();
+  $('house').hidden = false;
+}
+
+function play() {
+  $('house').hidden = true;
+  startLevel();
 }
 
 // --- Ход ---
@@ -111,9 +165,9 @@ async function swap(a, b) {
     progress.stars++;
     saver.save(progress);
     renderHud();
-    showOverlay('Уровень пройден! +1 ★', 'Дальше', startLevel);
+    showOverlay('Уровень пройден! +1 ★', [['Домой', showHouse]]);
   } else if (moves === 0) {
-    showOverlay('Ходы закончились', 'Ещё раз', startLevel);
+    showOverlay('Ходы закончились', [['Ещё раз', startLevel], ['Домой', showHouse]]);
   } else {
     busy = false;
   }
@@ -131,6 +185,8 @@ function tap(i) {
 }
 
 $('restart').addEventListener('click', () => { if (!busy) startLevel(); });
+$('home').addEventListener('click', () => { if (!busy) showHouse(); });
+$('play').addEventListener('click', play);
 
 // --- Жизненный цикл: сворачивание, потеря фокуса ---
 function setupLifecycle() {
@@ -158,10 +214,10 @@ async function start() {
   view.onSwap = swap;
   view.onTap = tap;
   setupLifecycle();
-  startLevel();
+  showHouse();
   info(ysdk ? 'Меняй соседние фишки местами: 3 в ряд' : 'Локальный режим (без SDK) · меняй соседние фишки');
   // Для автопроверки в браузере: ?debug открывает доступ к полю и ходу.
-  if (new URLSearchParams(location.search).has('debug')) window.debugGame = { board: () => board, swap, moves: () => moves };
+  if (new URLSearchParams(location.search).has('debug')) window.debugGame = { board: () => board, swap, moves: () => moves, progress: () => progress };
   ysdk?.features?.LoadingAPI?.ready();
   ysdk?.features?.GameplayAPI?.start();
 }

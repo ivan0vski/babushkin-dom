@@ -14,7 +14,10 @@
   <header>
     <h1 id="title">Уровень 1</h1>
     <span id="stars">★ 0</span>
-    <button id="restart" type="button">Заново</button>
+    <span class="buttons">
+      <button id="restart" type="button">Заново</button>
+      <button id="home" type="button">Домой</button>
+    </span>
   </header>
   <section id="hud">
     <div id="moves"><b>20</b><small>ходов</small></div>
@@ -26,7 +29,27 @@
     <div class="panel">
       <p id="overlay-text"></p>
       <button id="overlay-btn" type="button"></button>
+      <button id="overlay-btn2" type="button" hidden></button>
     </div>
+  </div>
+  <div id="house">
+    <header>
+      <h1 id="room-name">Чердак</h1>
+      <span id="house-stars" class="star-count">★ 0</span>
+    </header>
+    <div id="cozy"><div id="cozy-fill"></div><span id="cozy-text">Уют 0%</span></div>
+    <!-- Комната на заглушках: каждая задача включает класс done-<id> -->
+    <div id="room">
+      <div class="r-window"><div class="r-curtains"></div></div>
+      <div class="r-lamp"></div>
+      <div class="r-floor"></div>
+      <div class="r-chest" data-label="сундук"></div>
+      <div class="r-junk" data-label="хлам"><i></i><i></i><i></i></div>
+      <div class="r-dark"></div>
+    </div>
+    <ul id="tasks"></ul>
+    <p id="house-note"></p>
+    <button id="play" type="button">Играть</button>
   </div>
 </body>
 </html>
