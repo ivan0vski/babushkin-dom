@@ -94,3 +94,21 @@ export function loseStreak(progress) {
 export function streakBonuses(progress) {
   return STREAK_BONUSES.slice(0, progress.streak);
 }
+
+// --- Тизер: что откроется дальше ---
+// Комнаты, которых ещё нет в игре, — только названия (порядок локаций из GDD, раздел 4).
+export const FUTURE_ROOMS = ['Гостиная', 'Детская', 'Бабушкина спальня', 'Двор'];
+
+// Сколько ещё звёзд нужно, чтобы доделать текущую комнату (с учётом уже накопленных).
+export function starsToFinishRoom(progress) {
+  const left = currentRoom(progress).tasks.filter((t) => !progress.done.includes(t.id)).reduce((s, t) => s + t.cost, 0);
+  return Math.max(0, left - progress.stars);
+}
+
+// { name, locked: true, need } — следующая комната под замком; null, если она уже открывается кнопкой.
+export function teaser(progress) {
+  if (nextRoom(progress)) return null;
+  const next = ROOMS[progress.room + 1];
+  if (next) return { name: next.name, soon: false, need: starsToFinishRoom(progress) };
+  return { name: FUTURE_ROOMS[0], soon: true, need: 0 };
+}

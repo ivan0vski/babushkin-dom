@@ -2,7 +2,7 @@ import { createBoard, trySwap, isAdjacent, placeBonuses } from './match3.js';
 import { createView, TILE_FILES } from './view.js';
 import { levelConfig } from './levels.js';
 import { ROOMS, sanitizeProgress, availableTasks, doTask, roomPercent, roomComplete, currentRoom, nextRoom, enterNextRoom,
-  winLevel, loseStreak, streakBonuses, BONUS_NAMES } from './house.js';
+  winLevel, loseStreak, streakBonuses, BONUS_NAMES, teaser } from './house.js';
 import { createSaver, loadSave } from './save.js';
 import { checkForUpdate } from './update.js';
 import * as sound from './sound.js';
@@ -153,6 +153,13 @@ function renderHouse(note = '') {
   const next = nextRoom(progress);
   $('next-room').hidden = !next;
   if (next) $('next-room').textContent = `Открыть: ${next.name} →`;
+  const tz = teaser(progress);
+  $('teaser').hidden = !tz;
+  if (tz) {
+    $('teaser').textContent = tz.soon
+      ? `🔒 Скоро: ${tz.name}`
+      : `🔒 Дальше: ${tz.name}` + (tz.need > 0 ? ` · ещё ★ ${tz.need} на ремонт` : ' · хватает звёзд — доделай ремонт!');
+  }
   $('house-note').textContent = note || (roomComplete(progress) ? roomDoneNote() : '');
   $('play').textContent = 'Играть · Уровень ' + progress.level;
   $('streak').textContent = streakText() || 'Выигрывай подряд — получишь бонусы на старте';
