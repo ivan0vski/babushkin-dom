@@ -1,0 +1,24 @@
+{
+  "v": "ce6f9fba2e",
+  "files": [
+    "assets/tiles/apple.png",
+    "assets/tiles/cup.png",
+    "assets/tiles/jam.png",
+    "assets/tiles/lilac.png",
+    "assets/tiles/mitten.png",
+    "assets/tiles/pie.png",
+    "assets/tiles/rolling_pin.png",
+    "assets/tiles/samovar.png",
+    "css/style.css",
+    "index.html",
+    "js/house.js",
+    "js/levels.js",
+    "js/main.js",
+    "js/match3.js",
+    "js/save.js",
+    "js/update.js",
+    "js/view.js",
+    "lib/phaser.min.js",
+    "js/build.js"
+  ]
+}

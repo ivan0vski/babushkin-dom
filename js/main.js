@@ -3,6 +3,7 @@ import { createView, TILE_FILES } from './view.js';
 import { levelConfig } from './levels.js';
 import { ROOM, TASKS, sanitizeProgress, availableTasks, doTask, roomPercent } from './house.js';
 import { createSaver, loadSave } from './save.js';
+import { checkForUpdate } from './update.js';
 
 const $ = (id) => document.getElementById(id);
 let view; // сцена Phaser с полем
@@ -128,12 +129,18 @@ function renderHouse(note = '') {
   $('play').textContent = 'Играть · Уровень ' + progress.level;
 }
 
+// Новая версия на сайте — обновиться. Только на экране дома: уровень не прерываем.
+function updateIfNeeded() {
+  if (!$('house').hidden) checkForUpdate({ beforeReload: () => saver.flush() });
+}
+
 function showHouse() {
   $('overlay').hidden = true;
   busy = true; // поле не принимает ходы, пока открыт дом
   prevDone = [...progress.done]; // анимировать только то, что сделано сейчас
   renderHouse();
   $('house').hidden = false;
+  updateIfNeeded();
 }
 
 function play() {
@@ -197,6 +204,7 @@ function setupLifecycle() {
       ysdk?.features?.GameplayAPI?.stop();
     } else {
       ysdk?.features?.GameplayAPI?.start();
+      updateIfNeeded();
     }
   });
   window.addEventListener('pagehide', () => saver.flush());
@@ -205,6 +213,7 @@ function setupLifecycle() {
 }
 
 async function start() {
+  if (await checkForUpdate()) return; // старая версия из кэша — сразу обновиться
   const sdk = await initSdk();
   ysdk = sdk.ysdk;
   const storage = safeLocalStorage();
