@@ -199,17 +199,64 @@ class BoardScene extends Phaser.Scene {
     });
 
     let bonusFired = false;
+    const fired = [];
     for (const [id, sp] of this.sprites) {
       if (alive.has(id)) continue;
       this.sprites.delete(id);
-      if (sp.tile.s) bonusFired = true;
+      if (sp.tile.s) { bonusFired = true; fired.push(sp); }
       if (sp.tile.c >= 0) this.bursts[sp.tile.c].explode(7, sp.x, sp.y);
       this.tweens.killTweensOf(sp);
       this.tweens.add({ targets: sp, scale: 1.25 * BASE, alpha: 0, duration: 180, ease: 'Quad.easeOut', onComplete: () => sp.destroy() });
       dur = Math.max(dur, 180);
     }
     if (bonusFired) this.cameras.main.shake(160, 0.008);
+    fired.forEach((sp) => this.bonusEffect(sp.tile.s, sp.x, sp.y));
     return this.wait(dur);
+  }
+
+  // Вспышка бонуса: скалка — луч по ряду/столбцу, варенье — кольцо, самовар — вспышка поля.
+  bonusEffect(kind, x, y) {
+    const fade = (obj, extra = {}) => this.tweens.add({ targets: obj, alpha: 0, duration: 380, ease: 'Quad.easeOut', ...extra, onComplete: () => obj.destroy() });
+    if (kind === 'h' || kind === 'v') {
+      const beam = kind === 'h'
+        ? this.add.rectangle(W * CELL / 2, y, W * CELL, CELL * 0.55, 0xfff3c4)
+        : this.add.rectangle(x, H * CELL / 2, CELL * 0.55, H * CELL, 0xfff3c4);
+      beam.setDepth(4).setAlpha(0.9);
+      fade(beam, kind === 'h' ? { scaleY: 0.1 } : { scaleX: 0.1 });
+    } else if (kind === 'bomb') {
+      const ring = this.add.circle(x, y, CELL * 0.5).setStrokeStyle(14, 0xffe08a).setDepth(4);
+      fade(ring, { scale: 3.2 });
+    } else if (kind === 'color') {
+      const flash = this.add.rectangle(W * CELL / 2, H * CELL / 2, W * CELL, H * CELL, 0xffffff).setDepth(4).setAlpha(0.6);
+      fade(flash, { duration: 500 });
+    }
+  }
+
+  // Надпись на каскаде: чем длиннее цепочка, тем громче.
+  combo(chain) {
+    const words = ['', '', 'Отлично!', 'Супер!', 'Невероятно!'];
+    const word = words[Math.min(chain, words.length - 1)];
+    if (!word) return;
+    const t = this.add.text(W * CELL / 2, H * CELL / 2, word, {
+      fontFamily: 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+      fontSize: `${64 + Math.min(chain, 5) * 8}px`,
+      fontStyle: 'bold',
+      color: '#fff6d8',
+      stroke: '#7a3e22',
+      strokeThickness: 12,
+    }).setOrigin(0.5).setDepth(10).setScale(0.3).setAngle(-6);
+    this.tweens.add({ targets: t, scale: 1, angle: 0, duration: 260, ease: 'Back.easeOut' });
+    this.tweens.add({ targets: t, y: t.y - 80, alpha: 0, delay: 600, duration: 450, ease: 'Quad.easeIn', onComplete: () => t.destroy() });
+  }
+
+  // Победа: конфетти из искр всех цветов.
+  celebrate() {
+    this.bursts.forEach((em, k) => {
+      for (let n = 0; n < 3; n++) {
+        this.time.delayedCall(n * 180 + k * 40, () => em.explode(14, 100 + Math.random() * (W * CELL - 200), 150 + Math.random() * 300));
+      }
+    });
+    return this.wait(700);
   }
 
   // Неудачный обмен: фишки съезжаются и возвращаются.

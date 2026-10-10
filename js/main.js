@@ -46,6 +46,8 @@ function tileIcon(c) {
   return img;
 }
 
+let shownGoals = {}; // что было на счётчиках — чтобы «подпрыгнул» только изменившийся
+
 function renderHud() {
   $('title').textContent = 'Уровень ' + progress.level;
   $('stars').textContent = '★ ' + progress.stars;
@@ -54,10 +56,11 @@ function renderHud() {
   goalsEl.replaceChildren();
   for (const [c, n] of Object.entries(goals)) {
     const g = document.createElement('div');
-    g.className = 'goal' + (n === 0 ? ' done' : '');
+    g.className = 'goal' + (n === 0 ? ' done' : '') + (shownGoals[c] !== undefined && n < shownGoals[c] ? ' bump' : '');
     g.append(tileIcon(c), n === 0 ? '✓' : String(n));
     goalsEl.appendChild(g);
   }
+  shownGoals = { ...goals };
 }
 
 function info(text) {
@@ -69,6 +72,7 @@ function startLevel() {
   board = createBoard(cfg.colors);
   moves = cfg.moves;
   goals = { ...cfg.goals };
+  shownGoals = {};
   selected = -1;
   view.clear();
   view.render(board.cells, 'init');
@@ -161,9 +165,11 @@ async function swap(a, b) {
   }
   moves--;
   renderHud();
+  let chain = 0;
   for (const st of res.steps) {
     const anim = view.render(st.cells, st.kind);
     if (st.got) {
+      view.combo(++chain);
       // Счётчик цели уменьшается на каждом взрыве, в том числе на каскадах (фишки упали и собрались сами).
       st.got.forEach((n, c) => { if (c in goals) goals[c] = Math.max(0, goals[c] - n); });
       renderHud();
@@ -176,6 +182,7 @@ async function swap(a, b) {
     progress.stars++;
     saver.save(progress);
     renderHud();
+    await view.celebrate();
     showOverlay('Уровень пройден! +1 ★', [['Домой', showHouse]]);
   } else if (moves === 0) {
     showOverlay('Ходы закончились', [['Ещё раз', startLevel], ['Домой', showHouse]]);
