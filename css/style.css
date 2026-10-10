@@ -52,6 +52,7 @@ button.sound {
 }
 
 button {
+  transition: transform 0.08s;
   font: inherit;
   font-size: 14px;
   padding: 6px 12px;
@@ -542,10 +543,173 @@ button {
 }
 
 #play {
+  animation: breathe 1.8s ease-in-out infinite;
   font-size: 20px;
   font-weight: 700;
   padding: 14px;
   background: #4caf50;
   color: #fff;
   border-radius: 14px;
+}
+
+/* --- Анимации: нажатия, переходы, «живой» дом --- */
+button:active {
+  transform: scale(0.94);
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+#wipe {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 40%, #f6c98a, #d98b3f);
+  clip-path: circle(0 at var(--x) var(--y));
+}
+
+#wipe[hidden] {
+  display: none;
+}
+
+#wipe.closed {
+  clip-path: circle(150vmax at var(--x) var(--y));
+  transition: clip-path 0.42s ease-in;
+}
+
+#wipe.opening {
+  clip-path: circle(0 at var(--x) var(--y));
+  transition: clip-path 0.45s ease-out;
+}
+
+.wipe-card {
+  text-align: center;
+  color: #4a2a12;
+  animation: card-in 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.wipe-card[hidden] {
+  display: none;
+}
+
+.wipe-card h2 {
+  margin: 0 0 14px;
+  font-size: 40px;
+}
+
+#wipe-goals {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+#wipe-goals div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#wipe-goals img {
+  width: 64px;
+  height: 64px;
+  animation: pop 0.5s ease-out backwards;
+}
+
+#wipe-goals div:nth-child(2) img { animation-delay: 0.1s; }
+#wipe-goals div:nth-child(3) img { animation-delay: 0.2s; }
+#wipe-goals div:nth-child(4) img { animation-delay: 0.3s; }
+
+#wipe-moves {
+  margin: 14px 0 0;
+  font-size: 18px;
+}
+
+@keyframes card-in {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.panel.win {
+  animation: card-in 0.45s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+
+.panel.lose {
+  animation: shake 0.45s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.fly-star {
+  position: fixed;
+  z-index: 30;
+  font-size: 30px;
+  color: #f0b429;
+  text-shadow: 0 0 8px #fff3c4;
+  pointer-events: none;
+}
+
+/* Пылинки в воздухе на чердаке */
+.r-dust {
+  inset: 0;
+  pointer-events: none;
+}
+
+.r-dust i {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 240, 200, 0.7);
+  animation: dust 7s linear infinite;
+}
+
+.r-dust i:nth-child(1) { left: 30%; top: 60%; animation-delay: 0s; }
+.r-dust i:nth-child(2) { left: 45%; top: 40%; animation-delay: -1s; }
+.r-dust i:nth-child(3) { left: 55%; top: 70%; animation-delay: -2s; }
+.r-dust i:nth-child(4) { left: 65%; top: 50%; animation-delay: -3s; }
+.r-dust i:nth-child(5) { left: 38%; top: 30%; animation-delay: -4s; }
+.r-dust i:nth-child(6) { left: 72%; top: 35%; animation-delay: -5s; }
+.r-dust i:nth-child(7) { left: 20%; top: 45%; animation-delay: -6s; }
+.r-dust i:nth-child(8) { left: 50%; top: 55%; animation-delay: -3.5s; }
+
+@keyframes dust {
+  0% { transform: translate(0, 0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translate(30px, -60px); opacity: 0; }
+}
+
+.done-stove .k-mouth {
+  animation: flicker 1.2s ease-in-out infinite;
+}
+
+@keyframes flicker {
+  0%, 100% { filter: brightness(1); }
+  30% { filter: brightness(1.25); }
+  60% { filter: brightness(0.9); }
+}
+
+.done-lamp .r-lamp {
+  animation: glow 3s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #play, .r-dust i, .done-stove .k-mouth, .done-lamp .r-lamp { animation: none; }
 }

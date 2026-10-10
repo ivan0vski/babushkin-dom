@@ -50,6 +50,7 @@
       <div class="r-chest" data-label="сундук"></div>
       <div class="r-junk" data-label="хлам"><i></i><i></i><i></i></div>
       <div class="r-dark"></div>
+      <div class="r-dust"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
     </div>
     <div class="room kitchen" id="room-kitchen" hidden>
       <div class="k-window"></div>
@@ -67,6 +68,14 @@
     <p id="house-note"></p>
     <button id="next-room" type="button" hidden></button>
     <button id="play" type="button">Играть</button>
+  </div>
+  <!-- Переход между экранами: тёплый круг закрывает экран, карточка уровня, круг раскрывается -->
+  <div id="wipe" hidden>
+    <div class="wipe-card" hidden>
+      <h2 id="wipe-title"></h2>
+      <div id="wipe-goals"></div>
+      <p id="wipe-moves"></p>
+    </div>
   </div>
 </body>
 </html>

@@ -83,8 +83,9 @@ function startLevel() {
 }
 
 // Окно поверх поля: текст и одна-две кнопки [[надпись, действие], ...].
-function showOverlay(text, buttons) {
+function showOverlay(text, buttons, kind = '') {
   $('overlay-text').textContent = text;
+  $('overlay').querySelector('.panel').className = 'panel ' + kind;
   ['overlay-btn', 'overlay-btn2'].forEach((id, k) => {
     const b = $(id);
     b.hidden = !buttons[k];
@@ -133,7 +134,8 @@ function renderHouse(note = '') {
       progress = next;
       saver.save(progress);
       sound.sfx.task();
-      renderHouse(roomComplete(progress) ? roomDoneNote() : 'Готово!');
+      list.querySelectorAll('button').forEach((x) => { x.disabled = true; });
+      flyStar(btn, $('room-' + currentRoom(progress).id)).then(() => renderHouse(roomComplete(progress) ? roomDoneNote() : 'Готово!'));
     };
     li.append(t.name, btn);
     list.appendChild(li);
@@ -168,11 +170,95 @@ function showHouse() {
   updateIfNeeded();
 }
 
+// --- Переходы ---
+let wiping = false;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const centerOf = (el) => {
+  const r = el.getBoundingClientRect();
+  return [r.left + r.width / 2, r.top + r.height / 2];
+};
+
+// Круг закрывает экран от точки from, (карточка уровня), middle() меняет экран, круг раскрывается.
+async function wipe(from, middle, card = null) {
+  if (wiping) return;
+  wiping = true;
+  busy = true;
+  const w = $('wipe');
+  const c = w.querySelector('.wipe-card');
+  const [x, y] = from ? centerOf(from) : [innerWidth / 2, innerHeight / 2];
+  w.style.setProperty('--x', x + 'px');
+  w.style.setProperty('--y', y + 'px');
+  w.className = '';
+  w.hidden = false;
+  void w.offsetWidth; // применить стартовый круг до анимации
+  w.className = 'closed';
+  await sleep(420);
+  if (card) {
+    card();
+    c.hidden = false;
+    await sleep(1100);
+  }
+  middle();
+  w.style.setProperty('--x', innerWidth / 2 + 'px');
+  w.style.setProperty('--y', innerHeight / 2 + 'px');
+  w.className = 'opening';
+  await sleep(450);
+  w.hidden = true;
+  c.hidden = true;
+  wiping = false;
+}
+
+// Карточка перед уровнем: номер, что собрать, сколько ходов.
+function levelCard() {
+  const cfg = levelConfig(progress.level);
+  $('wipe-title').textContent = 'Уровень ' + progress.level;
+  const g = $('wipe-goals');
+  g.replaceChildren();
+  for (const [col, n] of Object.entries(cfg.goals)) {
+    const d = document.createElement('div');
+    d.append(tileIcon(col), String(n));
+    g.appendChild(d);
+  }
+  $('wipe-moves').textContent = `Собери за ${cfg.moves} ходов`;
+}
+
+function enterLevel(from) {
+  wipe(from, () => {
+    $('house').hidden = true;
+    startLevel();
+  }, levelCard);
+}
+
+function goHome() {
+  wipe($('home'), showHouse);
+}
+
 function play() {
   sound.sfx.tap();
-  $('house').hidden = true;
-  startLevel();
+  enterLevel($('play'));
 }
+
+// Звезда летит от кнопки задачи в комнату.
+function flyStar(from, to) {
+  const [x0, y0] = centerOf(from);
+  const [x1, y1] = centerOf(to);
+  const s = document.createElement('span');
+  s.className = 'fly-star';
+  s.textContent = '★';
+  s.style.left = x0 + 'px';
+  s.style.top = y0 + 'px';
+  document.body.appendChild(s);
+  const dx = x1 - x0;
+  const dy = y1 - y0;
+  const anim = s.animate([
+    { transform: 'translate(-50%, -50%) scale(1)' },
+    { transform: `translate(calc(-50% + ${dx / 2}px), calc(-50% + ${dy / 2 - 60}px)) scale(1.8)`, offset: 0.5 },
+    { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0.6)`, opacity: 0.2 },
+  ], { duration: 550, easing: 'ease-in-out' });
+  return anim.finished.then(() => s.remove(), () => s.remove());
+}
+
 
 // --- Ход ---
 async function swap(a, b) {
@@ -209,10 +295,10 @@ async function swap(a, b) {
     renderHud();
     sound.sfx.win();
     await view.celebrate();
-    showOverlay('Уровень пройден! +1 ★', [['Домой', showHouse]]);
+    showOverlay('Уровень пройден! +1 ★', [['Домой', goHome]], 'win');
   } else if (moves === 0) {
     sound.sfx.lose();
-    showOverlay('Ходы закончились', [['Ещё раз', startLevel], ['Домой', showHouse]]);
+    showOverlay('Ходы закончились', [['Ещё раз', () => enterLevel($('overlay-btn'))], ['Домой', goHome]], 'lose');
   } else {
     busy = false;
   }
@@ -230,7 +316,7 @@ function tap(i) {
 }
 
 $('restart').addEventListener('click', () => { if (!busy) startLevel(); });
-$('home').addEventListener('click', () => { if (!busy) { sound.sfx.tap(); showHouse(); } });
+$('home').addEventListener('click', () => { if (!busy) { sound.sfx.tap(); goHome(); } });
 
 // --- Звук: включается первым касанием (так требует браузер), кнопка 🔊/🔇 ---
 function renderSoundButtons() {
