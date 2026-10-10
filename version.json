@@ -1,6 +1,14 @@
 {
-  "v": "aaaa9de98d",
+  "v": "6c3768f02a",
   "files": [
+    "assets/rooms/attic_bg.jpg",
+    "assets/rooms/attic_chest.png",
+    "assets/rooms/attic_curtains.png",
+    "assets/rooms/attic_floor_new.png",
+    "assets/rooms/attic_junk.png",
+    "assets/rooms/attic_lamp.png",
+    "assets/rooms/attic_window_clean.png",
+    "assets/rooms/attic_window_dirty.png",
     "assets/tiles/apple.png",
     "assets/tiles/cup.png",
     "assets/tiles/jam.png",
