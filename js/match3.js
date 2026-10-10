@@ -275,3 +275,14 @@ export function trySwap(b, a, z, rng = Math.random) {
   }
   return { steps, collected };
 }
+
+// Бонусы на старте уровня (серия побед): kinds — 'line' | 'bomb' | 'color', ставятся в середину поля.
+export function placeBonuses(b, kinds, rng = Math.random) {
+  const spots = [];
+  for (let y = 2; y < H - 2; y++) for (let x = 1; x < W - 1; x++) spots.push(y * W + x);
+  for (const kind of kinds) {
+    const i = spots.splice(Math.floor(rng() * spots.length), 1)[0];
+    const s = kind === 'line' ? (rng() < 0.5 ? 'h' : 'v') : kind;
+    b.cells[i] = tile(-1, s);
+  }
+}

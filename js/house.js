@@ -29,9 +29,10 @@ export const ROOMS = [
 
 export const TASKS = ROOMS.flatMap((r) => r.tasks);
 export const OPEN_AT_ONCE = 2;
+export const MAX_STREAK = 3;
 
 export function newProgress() {
-  return { level: 1, stars: 0, done: [], room: 0 };
+  return { level: 1, stars: 0, done: [], room: 0, streak: 0 };
 }
 
 // Проверка сохранения: всё неизвестное или испорченное — в значения по умолчанию.
@@ -41,7 +42,8 @@ export function sanitizeProgress(p) {
   const known = new Set(TASKS.map((t) => t.id));
   const done = Array.isArray(p.done) ? [...new Set(p.done.filter((id) => known.has(id)))] : [];
   const room = ok(p.room, 0) ? Math.min(p.room, ROOMS.length - 1) : 0;
-  return { level: p.level, stars: p.stars, done, room };
+  const streak = ok(p.streak, 0) ? Math.min(p.streak, MAX_STREAK) : 0;
+  return { level: p.level, stars: p.stars, done, room, streak };
 }
 
 export function currentRoom(progress) {
@@ -75,4 +77,20 @@ export function nextRoom(progress) {
 
 export function enterNextRoom(progress) {
   return nextRoom(progress) ? { ...progress, room: progress.room + 1 } : null;
+}
+
+// --- Серия побед: победы подряд дают бонусы на старте уровня; проигрыш или выход — серия сгорает ---
+const STREAK_BONUSES = ['line', 'bomb', 'color'];
+export const BONUS_NAMES = { line: 'скалка', bomb: 'варенье', color: 'самовар' };
+
+export function winLevel(progress) {
+  return { ...progress, level: progress.level + 1, stars: progress.stars + 1, streak: Math.min(progress.streak + 1, MAX_STREAK) };
+}
+
+export function loseStreak(progress) {
+  return { ...progress, streak: 0 };
+}
+
+export function streakBonuses(progress) {
+  return STREAK_BONUSES.slice(0, progress.streak);
 }

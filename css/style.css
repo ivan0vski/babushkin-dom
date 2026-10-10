@@ -713,3 +713,22 @@ button:active {
 @media (prefers-reduced-motion: reduce) {
   #play, .r-dust i, .done-stove .k-mouth, .done-lamp .r-lamp { animation: none; }
 }
+
+/* Серия побед */
+#streak {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #8a5a34;
+}
+
+#wipe-streak {
+  margin: 10px 0 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #7a2e10;
+}
+
+#wipe-streak:empty {
+  display: none;
+}

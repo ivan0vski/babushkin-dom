@@ -1,7 +1,8 @@
-import { createBoard, trySwap, isAdjacent } from './match3.js';
+import { createBoard, trySwap, isAdjacent, placeBonuses } from './match3.js';
 import { createView, TILE_FILES } from './view.js';
 import { levelConfig } from './levels.js';
-import { ROOMS, sanitizeProgress, availableTasks, doTask, roomPercent, roomComplete, currentRoom, nextRoom, enterNextRoom } from './house.js';
+import { ROOMS, sanitizeProgress, availableTasks, doTask, roomPercent, roomComplete, currentRoom, nextRoom, enterNextRoom,
+  winLevel, loseStreak, streakBonuses, BONUS_NAMES } from './house.js';
 import { createSaver, loadSave } from './save.js';
 import { checkForUpdate } from './update.js';
 import * as sound from './sound.js';
@@ -13,6 +14,7 @@ let board;
 let moves;
 let goals; // цвет → сколько осталось собрать
 let busy = false;
+let levelStarted = false; // сделан хотя бы один ход — выход из уровня сжигает серию
 let selected = -1;
 let saver;
 let ysdk = null;
@@ -71,6 +73,8 @@ function info(text) {
 function startLevel() {
   const cfg = levelConfig(progress.level);
   board = createBoard(cfg.colors);
+  placeBonuses(board, streakBonuses(progress));
+  levelStarted = false;
   moves = cfg.moves;
   goals = { ...cfg.goals };
   shownGoals = {};
@@ -145,6 +149,7 @@ function renderHouse(note = '') {
   if (next) $('next-room').textContent = `Открыть: ${next.name} →`;
   $('house-note').textContent = note || (roomComplete(progress) ? roomDoneNote() : '');
   $('play').textContent = 'Играть · Уровень ' + progress.level;
+  $('streak').textContent = streakText() || 'Выигрывай подряд — получишь бонусы на старте';
 }
 
 $('next-room').addEventListener('click', () => {
@@ -168,6 +173,19 @@ function showHouse() {
   renderHouse();
   $('house').hidden = false;
   updateIfNeeded();
+}
+
+// Проигрыш или выход после первого хода — серия побед сгорает.
+function burnStreak() {
+  if (!levelStarted || progress.streak === 0) return;
+  progress = loseStreak(progress);
+  saver.save(progress);
+  levelStarted = false;
+}
+
+function streakText() {
+  const b = streakBonuses(progress);
+  return b.length ? `🔥 Серия побед ${progress.streak} · на старте: ${b.map((k) => BONUS_NAMES[k]).join(', ')}` : '';
 }
 
 // --- Переходы ---
@@ -221,6 +239,7 @@ function levelCard() {
     g.appendChild(d);
   }
   $('wipe-moves').textContent = `Собери за ${cfg.moves} ходов`;
+  $('wipe-streak').textContent = streakText();
 }
 
 function enterLevel(from) {
@@ -231,6 +250,7 @@ function enterLevel(from) {
 }
 
 function goHome() {
+  burnStreak();
   wipe($('home'), showHouse);
 }
 
@@ -273,6 +293,7 @@ async function swap(a, b) {
     return;
   }
   moves--;
+  levelStarted = true;
   sound.sfx.swap();
   renderHud();
   let chain = 0;
@@ -289,8 +310,7 @@ async function swap(a, b) {
   }
   renderHud();
   if (Object.values(goals).every((n) => n === 0)) {
-    progress.level++;
-    progress.stars++;
+    progress = winLevel(progress);
     saver.save(progress);
     renderHud();
     sound.sfx.win();
@@ -298,7 +318,9 @@ async function swap(a, b) {
     showOverlay('Уровень пройден! +1 ★', [['Домой', goHome]], 'win');
   } else if (moves === 0) {
     sound.sfx.lose();
-    showOverlay('Ходы закончились', [['Ещё раз', () => enterLevel($('overlay-btn'))], ['Домой', goHome]], 'lose');
+    const hadStreak = progress.streak > 0;
+    burnStreak();
+    showOverlay(hadStreak ? 'Ходы закончились. Серия побед сгорела' : 'Ходы закончились', [['Ещё раз', () => enterLevel($('overlay-btn'))], ['Домой', goHome]], 'lose');
   } else {
     busy = false;
   }
@@ -315,7 +337,7 @@ function tap(i) {
   else select(selected === i ? -1 : i);
 }
 
-$('restart').addEventListener('click', () => { if (!busy) startLevel(); });
+$('restart').addEventListener('click', () => { if (!busy) { burnStreak(); startLevel(); } });
 $('home').addEventListener('click', () => { if (!busy) { sound.sfx.tap(); goHome(); } });
 
 // --- Звук: включается первым касанием (так требует браузер), кнопка 🔊/🔇 ---
