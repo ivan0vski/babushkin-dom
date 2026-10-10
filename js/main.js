@@ -1,7 +1,7 @@
 import { createBoard, trySwap, isAdjacent } from './match3.js';
 import { createView, TILE_FILES } from './view.js';
 import { levelConfig } from './levels.js';
-import { ROOM, TASKS, sanitizeProgress, availableTasks, doTask, roomPercent } from './house.js';
+import { ROOMS, sanitizeProgress, availableTasks, doTask, roomPercent, roomComplete, currentRoom, nextRoom, enterNextRoom } from './house.js';
 import { createSaver, loadSave } from './save.js';
 import { checkForUpdate } from './update.js';
 import * as sound from './sound.js';
@@ -96,14 +96,21 @@ function showOverlay(text, buttons) {
 // --- Дом ---
 let prevDone = [];
 
+function roomDoneNote() {
+  const name = currentRoom(progress).name;
+  return nextRoom(progress) ? `${name}: ремонт закончен!` : `${name}: ремонт закончен! Скоро откроются новые комнаты.`;
+}
+
 function renderHouse(note = '') {
-  $('room-name').textContent = ROOM.name;
+  const cur = currentRoom(progress);
+  $('room-name').textContent = cur.name;
   $('house-stars').textContent = '★ ' + progress.stars;
   const pct = roomPercent(progress);
   $('cozy-fill').style.width = pct + '%';
   $('cozy-text').textContent = `Уют ${pct}%`;
-  const room = $('room');
-  room.className = progress.done.map((id) => 'done-' + id).join(' ');
+  for (const r of ROOMS) $('room-' + r.id).hidden = r !== cur;
+  const room = $('room-' + cur.id);
+  room.className = `room ${cur.id} ` + progress.done.map((id) => 'done-' + id).join(' ');
   for (const id of progress.done.filter((d) => !prevDone.includes(d))) {
     const el = room.querySelector('.r-' + id);
     el?.classList.remove('changed');
@@ -126,14 +133,26 @@ function renderHouse(note = '') {
       progress = next;
       saver.save(progress);
       sound.sfx.task();
-      renderHouse(progress.done.length === TASKS.length ? 'Чердак восстановлен! Скоро откроется кухня.' : 'Готово!');
+      renderHouse(roomComplete(progress) ? roomDoneNote() : 'Готово!');
     };
     li.append(t.name, btn);
     list.appendChild(li);
   }
-  $('house-note').textContent = note || (progress.done.length === TASKS.length ? 'Чердак восстановлен! Скоро откроется кухня.' : '');
+  const next = nextRoom(progress);
+  $('next-room').hidden = !next;
+  if (next) $('next-room').textContent = `Открыть: ${next.name} →`;
+  $('house-note').textContent = note || (roomComplete(progress) ? roomDoneNote() : '');
   $('play').textContent = 'Играть · Уровень ' + progress.level;
 }
+
+$('next-room').addEventListener('click', () => {
+  const p = enterNextRoom(progress);
+  if (!p) return;
+  progress = p;
+  saver.save(progress);
+  sound.sfx.win();
+  renderHouse(`Открыта новая комната: ${currentRoom(progress).name}!`);
+});
 
 // Новая версия на сайте — обновиться. Только на экране дома: уровень не прерываем.
 function updateIfNeeded() {

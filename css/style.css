@@ -227,7 +227,7 @@ button {
   font-weight: 700;
 }
 
-#room {
+.room {
   position: relative;
   aspect-ratio: 4 / 3;
   height: min(36vh, calc((100vw - 32px) * 3 / 4), 390px);
@@ -236,15 +236,22 @@ button {
   border-radius: 12px;
   overflow: hidden;
   background: linear-gradient(#8a6a48, #a07c55);
+}
+
+.room[hidden] {
+  display: none;
+}
+
+.room.attic {
   clip-path: polygon(0 22%, 50% 0, 100% 22%, 100% 100%, 0 100%); /* скат крыши */
 }
 
-#room > div {
+.room > div {
   position: absolute;
   transition: background 0.5s, opacity 0.5s, transform 0.4s;
 }
 
-#room [data-label]::after {
+.room [data-label]::after {
   content: attr(data-label);
   position: absolute;
   left: 0;
@@ -339,8 +346,161 @@ button {
 }
 .done-lamp .r-dark { opacity: 0; }
 
-#room .changed {
+.room .changed {
   animation: pop 0.5s ease-out;
+}
+
+/* Кухня */
+.room.kitchen {
+  background: linear-gradient(#e2c79a, #d4b17c);
+}
+
+.k-window {
+  right: 8%;
+  top: 10%;
+  width: 18%;
+  aspect-ratio: 1;
+  border: 5px solid #8a5a34;
+  background: linear-gradient(160deg, #d8f0ff, #9fd3f5);
+}
+
+.k-floor {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20%;
+  background: repeating-linear-gradient(90deg, #9c6d3f 0 38px, #8a5e34 38px 40px);
+}
+
+.r-stove {
+  left: 5%;
+  bottom: 12%;
+  width: 28%;
+  height: 66%;
+  border-radius: 8px 8px 2px 2px;
+  background: #efe7da;
+  border: 3px solid #b9ad99;
+}
+
+.k-mouth {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 18%;
+  height: 26%;
+  border-radius: 40% 40% 4px 4px;
+  background: #2b2520;
+  transition: background 0.5s, box-shadow 0.5s;
+}
+.done-stove .k-mouth {
+  background: radial-gradient(circle at 50% 90%, #ffe08a, #f07b2a 45%, #8a2a10);
+  box-shadow: 0 0 26px 8px rgba(255, 150, 60, 0.55);
+}
+
+.r-table {
+  left: 42%;
+  bottom: 18%;
+  width: 46%;
+  height: 8%;
+  background: #8a5a34;
+  border-radius: 3px;
+  transform: rotate(-7deg); /* сломанный стол перекошен */
+  transform-origin: left bottom;
+}
+.done-table .r-table { transform: none; }
+
+.k-legs {
+  position: absolute;
+  top: 100%;
+  left: 6%;
+  right: 6%;
+  height: 160%;
+  background:
+    linear-gradient(#6b4528, #6b4528) left / 10% 100% no-repeat,
+    linear-gradient(#6b4528, #6b4528) right / 10% 60% no-repeat; /* одна ножка короче */
+}
+.done-table .k-legs {
+  background:
+    linear-gradient(#6b4528, #6b4528) left / 10% 100% no-repeat,
+    linear-gradient(#6b4528, #6b4528) right / 10% 100% no-repeat;
+}
+
+.r-table > div {
+  position: absolute;
+  transition: opacity 0.5s, transform 0.4s;
+}
+
+.r-cloth {
+  left: -4%;
+  right: -4%;
+  top: -10%;
+  height: 170%;
+  background: repeating-conic-gradient(#d9534f 0 25%, #f3e6cc 0 50%) 0 0 / 14px 14px;
+  opacity: 0;
+}
+.done-cloth .r-cloth { opacity: 1; }
+
+.r-dishes {
+  left: 6%;
+  bottom: 100%;
+  width: 22%;
+  height: 160%;
+}
+.r-dishes i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 30%;
+  border-radius: 50%;
+  background: #8c8577; /* грязные */
+  border: 2px solid #5e574a;
+}
+.r-dishes i:nth-child(1) { bottom: 0; }
+.r-dishes i:nth-child(2) { bottom: 32%; left: 8%; }
+.r-dishes i:nth-child(3) { bottom: 64%; left: -6%; }
+.done-dishes .r-dishes i { background: #fff; border-color: #3b7dd8; }
+
+.r-samovar {
+  left: 40%;
+  bottom: 100%;
+  width: 20%;
+  height: 420%;
+  border-radius: 40% 40% 14% 14%;
+  background: linear-gradient(90deg, #b7791f, #f6d365, #b7791f);
+  opacity: 0;
+  transform: scale(0.6);
+  transform-origin: bottom;
+}
+.done-samovar .r-samovar { opacity: 1; transform: scale(1); }
+
+.r-pies {
+  right: 4%;
+  bottom: 100%;
+  width: 28%;
+  height: 140%;
+  opacity: 0;
+}
+.r-pies i {
+  position: absolute;
+  bottom: 0;
+  width: 58%;
+  height: 100%;
+  border-radius: 50%;
+  background: #e0a040;
+  border: 2px solid #9c6a20;
+}
+.r-pies i:nth-child(2) { right: 0; }
+.done-pies .r-pies { opacity: 1; }
+
+#next-room {
+  font-size: 18px;
+  font-weight: 700;
+  padding: 12px;
+  background: #f0b429;
+}
+
+#next-room[hidden] {
+  display: none;
 }
 
 #tasks {
