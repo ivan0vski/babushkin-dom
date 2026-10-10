@@ -11,10 +11,21 @@
 </head>
 <body>
   <header>
-    <h1>Чердак</h1>
-    <button id="reset" type="button">Новое поле</button>
+    <h1 id="title">Уровень 1</h1>
+    <span id="stars">★ 0</span>
+    <button id="restart" type="button">Заново</button>
   </header>
-  <main id="board"></main>
+  <section id="hud">
+    <div id="moves"><b>20</b><small>ходов</small></div>
+    <div id="goals"></div>
+  </section>
+  <main id="board"><div id="grid"></div></main>
   <p id="info"></p>
+  <div id="overlay" hidden>
+    <div class="panel">
+      <p id="overlay-text"></p>
+      <button id="overlay-btn" type="button"></button>
+    </div>
+  </div>
 </body>
 </html>
