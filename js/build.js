@@ -1,2 +1,2 @@
 // Генерирует scripts/stamp-version.js при выкладке. Руками не править.
-export const BUILD = 'b3c54bba26';
+export const BUILD = 'aaaa9de98d';
